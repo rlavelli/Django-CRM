@@ -119,7 +119,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
-
+STATICFILES_DIRS = [
+    BASE_DIR / 'static'
+]
+STATIC_ROOT = 'static_root'
 
 # User Model
 AUTH_USER_MODEL='leads.User'
+
+# Email Testing
+# logs to console
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+# LOGIN
+LOGIN_REDIRECT_URL = '/leads'
