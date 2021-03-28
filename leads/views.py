@@ -5,7 +5,7 @@ from django.core.mail import send_mail
 from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView, DeleteView, FormView
 from agents.mixins import OrganizerAndLoginRequiredMixin
 from .models import Lead, Category
-from .forms import LeadModelForm, CustomUserCreationForm, AssignAgentForm
+from .forms import LeadModelForm, CustomUserCreationForm, AssignAgentForm, LeadCategoryUpdateForm
 
 # Create your views here.
 
@@ -57,7 +57,7 @@ class LeadListView(LoginRequiredMixin,ListView):
 
 class LeadDetailView(LoginRequiredMixin, DetailView):
     template_name = 'leads/lead_detail.html'
-    context_object_name = 'leads'
+    context_object_name = 'lead'
 
     def get_queryset(self):
         user = self.request.user
@@ -196,3 +196,43 @@ class CategoryListView(LoginRequiredMixin, ListView):
         else:
             queryset = Category.objects.filter(organisation=user.agent.organisation)
         return queryset
+
+class CategoryDetailView(LoginRequiredMixin, DetailView):
+    template_name = 'leads/category_detail.html'
+    context_object_name = 'category'
+
+    def get_context_data(self, **kwargs):
+        context = super(CategoryDetailView, self).get_context_data(**kwargs)
+
+        # queryset = Lead.objects.filter(category=self.get_object())
+        leads = self.get_object().leads.all() # fetch leads assigned to this category
+
+        context.update({
+            'leads': leads
+        })
+        return context
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_organizer:
+            queryset = Category.objects.filter(organisation=user.userprofile)
+        else:
+            queryset = Category.objects.filter(organisation=user.agent.organisation)
+        return queryset
+
+class LeadCategoryUpdateView(LoginRequiredMixin, UpdateView):
+    template_name = 'leads/lead_category_update.html'
+    form_class = LeadCategoryUpdateForm
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_organizer:
+            queryset = Lead.objects.filter(organisation=user.userprofile)
+        else:
+            queryset = Lead.objects.filter(organisation=user.agent.organisation)
+            # filter the agent loggedin
+            queryset = queryset.filter(agent__user=user)
+        return queryset
+
+    def get_success_url(self):
+        return reverse("leads:lead-detail", kwargs={'pk': self.get_object().id})
