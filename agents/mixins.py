@@ -7,3 +7,11 @@ class OrganizerAndLoginRequiredMixin(AccessMixin):
         if not request.user.is_authenticated or not request.user.is_organizer:
             return redirect('leads:lead-list')
         return super().dispatch(request, *args, **kwargs)
+
+# TEST
+class LoggedinMixin(AccessMixin):
+    """Verify that the user is logged. """
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect('leads:lead-list')
+        return super().dispatch(request, *args, **kwargs)

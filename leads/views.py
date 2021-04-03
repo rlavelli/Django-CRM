@@ -3,7 +3,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
 from django.core.mail import send_mail
 from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView, DeleteView, FormView
-from agents.mixins import OrganizerAndLoginRequiredMixin
+from agents.mixins import OrganizerAndLoginRequiredMixin, LoggedinMixin
 from .models import Lead, Category
 from .forms import LeadModelForm, CustomUserCreationForm, AssignAgentForm, LeadCategoryUpdateForm
 
@@ -84,6 +84,9 @@ class LeadCreateView(OrganizerAndLoginRequiredMixin, CreateView):
         return reverse("leads:lead-list")
 
     def form_valid(self, form):
+        lead = form.save(commit=False)
+        lead.organisation = self.request.user.userprofile
+        lead.save()
         # Send Email Test
         send_mail(
             subject="A lead has been created",
